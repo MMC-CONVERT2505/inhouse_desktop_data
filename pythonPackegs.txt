@@ -1,0 +1,31 @@
+Installed third-party packages (excluding stdlib):
+Python 3.10.11
+
+altgraph==0.17.4
+et-xmlfile==2.0.0
+numpy==1.26.4
+openpyxl==3.1.5
+packaging==25.0
+pandas==2.0.3
+pefile==2023.2.7
+pip==25.2
+pyinstaller==6.15.0
+pyinstaller-hooks-contrib==2025.8
+pyodbc==5.2.0
+python-dateutil==2.9.0.post0
+six==1.17.0
+tzdata==2025.2
+wheel==0.45.1
+backports.tarfile==1.2.0
+importlib-metadata==8.0.0
+inflect==7.3.1
+jaraco.collections==5.1.0
+jaraco.context==5.3.0
+jaraco.functools==4.0.1
+jaraco.text==3.12.1
+more-itertools==10.3.0
+platformdirs==4.2.2
+tomli==2.0.1
+typeguard==4.3.0
+typing-extensions==4.12.2
+zipp==3.19.2
