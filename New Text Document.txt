@@ -1,0 +1,11 @@
+Account - Require to "Sub Account" and "Parent Account" and Tax code
+
+Customer - Billing and Shipping Address all filed, Mobile, Fax ,Tax Id ,ABN,terms and Note
+
+Supplier - Billing and Shipping Address all filed, Mobile, Fax ,Tax Id ,ABN,terms and Note , Bank details
+
+Item - Item type ,Income Account,Purchase account ,cost,Purchase Description,Tax code
+
+select * from InvoiceLine
+select * from CreditMemoLinkedTxn
+select * from VendorCreditLinkedTxn
