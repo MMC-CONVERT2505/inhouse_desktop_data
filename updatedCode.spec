@@ -35,5 +35,5 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon=['D:\\Desktop\\Reckon_Tool\\reckon.ico'],
+    icon=['reckon.ico'],
 )

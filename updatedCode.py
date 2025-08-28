@@ -4,14 +4,50 @@ import pyodbc
 import pandas as pd
 import os
 
+# ---- Loading Modal ----
+loading_modal = None
+
+def show_loading(message="Please wait..."):
+    global loading_modal
+    if loading_modal is not None:
+        return  # already open
+
+    loading_modal = tk.Toplevel(root)
+    loading_modal.title("Loading")
+    loading_modal.geometry("250x100")
+    loading_modal.resizable(False, False)
+    loading_modal.transient(root)  # stay on top
+    loading_modal.grab_set()       # make modal
+
+    ttk.Label(loading_modal, text=message, anchor="center").pack(pady=10)
+    pb = ttk.Progressbar(loading_modal, mode="indeterminate")
+    pb.pack(fill="x", padx=20, pady=10)
+    pb.start(10)
+
+    # Disable close button
+    loading_modal.protocol("WM_DELETE_WINDOW", lambda: None)
+
+    # Center the modal
+    root.update_idletasks()
+    x = root.winfo_x() + (root.winfo_width() // 2) - (250 // 2)
+    y = root.winfo_y() + (root.winfo_height() // 2) - (100 // 2)
+    loading_modal.geometry(f"+{x}+{y}")
+
+def hide_loading():
+    global loading_modal
+    if loading_modal:
+        loading_modal.destroy()
+        loading_modal = None
+
+
 DEFAULT_DSN = "QuickBooks Data"
 conn = None
 company_name = "Unknown"
 
 def connect(dsn_name: str):
     global conn, company_name
+    show_loading("Connecting...") 
     status_var.set("Connecting...")
-    progress.start(10)
     root.update_idletasks()
 
     conn = pyodbc.connect(f"DSN={dsn_name};", autocommit=True)
@@ -21,9 +57,8 @@ def connect(dsn_name: str):
             company_name = df.iloc[0, 0].replace(" ", "_")
     except Exception:
         company_name = "Unknown"
-
-    progress.stop()
     status_var.set(f"Connected: {company_name}")
+    hide_loading()
     return conn
 
 def close_connection():
@@ -150,9 +185,9 @@ def export_data(fetch_func, data_type):
         return
 
     try:
+        show_loading(f"Exporting {data_type}...")   
         with connect(dsn) as connection:
             status_var.set(f"Exporting {data_type}...")
-            progress.start(10)
             root.update_idletasks()
 
             df = fetch_func(connection)
@@ -166,16 +201,16 @@ def export_data(fetch_func, data_type):
                     max_len = max(df[col].astype(str).map(len).max(), len(col)) + 2
                     worksheet.set_column(idx, idx, max_len)
 
-        progress.stop()
         status_var.set("Export complete.")
+        hide_loading()
         messagebox.showinfo("Done", f"Exported {data_type} to:\n{save_path}")
         try:
             os.startfile(save_path)
         except Exception:
             pass
     except Exception as e:
-        progress.stop()
         status_var.set("Export failed.")
+        hide_loading()
         messagebox.showerror("Export failed", str(e))
 
 # ---- Export all datasets in one file ----
@@ -195,9 +230,9 @@ def export_all():
         return
 
     try:
+        show_loading(f"Exporting All Data...")   
         with connect(dsn) as connection:
             status_var.set("Exporting all datasets...")
-            progress.start(10)
             root.update_idletasks()
 
             datasets = {
@@ -222,16 +257,16 @@ def export_all():
                         max_len = max(df[col].astype(str).map(len).max(), len(col)) + 2
                         worksheet.set_column(idx, idx, max_len)
 
-        progress.stop()
         status_var.set("All exports complete.")
+        hide_loading()
         messagebox.showinfo("Done", f"All datasets exported to:\n{save_path}")
         try:
             os.startfile(save_path)
         except Exception:
             pass
     except Exception as e:
-        progress.stop()
         status_var.set("Export failed.")
+        hide_loading()
         messagebox.showerror("Export failed", str(e))
 
 # ---- UI ----
@@ -270,13 +305,10 @@ ttk.Button(frm, text="Invoice Line", command=lambda: export_data(fetch_InvoiceLi
 ttk.Button(frm, text="Credit Memo Linked Txn", command=lambda: export_data(fetch_CreditMemoLinkedTxn, "CreditMemoLinkedTxn")).grid(row=7, column=2, sticky="w", pady=6)
 ttk.Button(frm, text="Vendor Credit Linked Txn", command=lambda: export_data(fetch_VendorCreditLinkedTxn, "VendorCreditLinkedTxn")).grid(row=8, column=1, sticky="w", pady=6)
 
-
+ttk.Separator(frm).grid(row=9, column=0, columnspan=3, pady=10, sticky="ew")
 
 status_var = tk.StringVar(value="Idle")
-ttk.Label(frm, textvariable=status_var, foreground="blue").grid(row=9, column=0, columnspan=3, pady=(12,0), sticky="w")
-
-progress = ttk.Progressbar(frm, mode="indeterminate")
-progress.grid(row=10, column=0, columnspan=3, pady=(8,0), sticky="we")
+ttk.Label(frm, textvariable=status_var, foreground="blue").grid(row=10, column=0, columnspan=5, pady=(12,0), sticky="w")
 
 def on_close():
     close_connection()
