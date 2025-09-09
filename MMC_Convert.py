@@ -10,8 +10,7 @@ import pandas as pd
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QWidget, QTabWidget, QVBoxLayout, QHBoxLayout, QGridLayout, QToolButton,
-    QTextEdit, QPushButton, QProgressBar, QLabel, QComboBox, QFileDialog, QMessageBox, QDialog, QFrame
-)
+    QTextEdit, QPushButton, QProgressBar, QLabel, QComboBox, QFileDialog, QMessageBox, QDialog, QFrame)
 import qdarkstyle
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QSizePolicy
@@ -257,17 +256,60 @@ def close_connection():
         conn = None
         status_var.set("Connection closed.")
 
-def fetch_coa(connection): return pd.read_sql("SELECT * FROM Account", connection)
-def fetch_class(connection): return pd.read_sql("SELECT * FROM Class", connection)
-def fetch_item(connection): return pd.read_sql("SELECT * FROM Item", connection)
-def fetch_bill(connection): return pd.read_sql("SELECT * FROM Bill", connection)
-def fetch_invoice(connection): return pd.read_sql("SELECT * FROM Invoice", connection)
-def fetch_receivepayment(connection): return pd.read_sql("SELECT * FROM ReceivePaymentLine", connection)
-def fetch_BillPaymentCheckLine(connection): return pd.read_sql("SELECT * FROM BillPaymentCheckLine", connection)
-def fetch_BillPaymentCreditCardLine(connection): return pd.read_sql("SELECT * FROM BillPaymentCreditCardLine", connection)
-def fetch_InvoiceLine(connection): return pd.read_sql("SELECT * FROM InvoiceLine", connection)
-def fetch_CreditMemoLinkedTxn(connection): return pd.read_sql("SELECT * FROM CreditMemoLinkedTxn", connection)
-def fetch_VendorCreditLinkedTxn(connection): return pd.read_sql("SELECT * FROM VendorCreditLinkedTxn", connection)
+# def fetch_coa(connection): return pd.read_sql("SELECT * FROM Account", connection)
+# def fetch_class(connection): return pd.read_sql("SELECT * FROM Class", connection)
+# def fetch_item(connection): return pd.read_sql("SELECT * FROM Item", connection)
+# def fetch_bill(connection): return pd.read_sql("SELECT * FROM Bill", connection)
+# def fetch_invoice(connection): return pd.read_sql("SELECT * FROM Invoice", connection)
+# def fetch_receivepayment(connection): return pd.read_sql("SELECT * FROM ReceivePaymentLine", connection)
+# def fetch_BillPaymentCheckLine(connection): return pd.read_sql("SELECT * FROM BillPaymentCheckLine", connection)
+# def fetch_BillPaymentCreditCardLine(connection): return pd.read_sql("SELECT * FROM BillPaymentCreditCardLine", connection)
+# def fetch_InvoiceLine(connection): return pd.read_sql("SELECT * FROM InvoiceLine", connection)
+# def fetch_CreditMemoLinkedTxn(connection): return pd.read_sql("SELECT * FROM CreditMemoLinkedTxn", connection)
+# def fetch_VendorCreditLinkedTxn(connection): return pd.read_sql("SELECT * FROM VendorCreditLinkedTxn", connection)
+
+import pandas as pd
+
+def fetch_data(query, connection, name):
+    try:
+        return pd.read_sql(query, connection)
+    except Exception as e:
+        print(f"[ERROR] Failed to fetch {name}: {e}")
+        return pd.DataFrame()  # empty DataFrame return karega
+
+def fetch_coa(connection): 
+    return fetch_data("SELECT * FROM Account", connection, "Chart of Accounts")
+
+def fetch_class(connection): 
+    return fetch_data("SELECT * FROM Class", connection, "Class")
+
+def fetch_item(connection): 
+    return fetch_data("SELECT * FROM Item", connection, "Item")
+
+def fetch_bill(connection): 
+    return fetch_data("SELECT * FROM Bill", connection, "Bill")
+
+def fetch_invoice(connection): 
+    return fetch_data("SELECT * FROM Invoice", connection, "Invoice")
+
+def fetch_receivepayment(connection): 
+    return fetch_data("SELECT * FROM ReceivePaymentLine", connection, "ReceivePayment")
+
+def fetch_BillPaymentCheckLine(connection): 
+    return fetch_data("SELECT * FROM BillPaymentCheckLine", connection, "BillPaymentCheckLine")
+
+def fetch_BillPaymentCreditCardLine(connection): 
+    return fetch_data("SELECT * FROM BillPaymentCreditCardLine", connection, "BillPaymentCreditCardLine")
+
+def fetch_InvoiceLine(connection): 
+    return fetch_data("SELECT * FROM InvoiceLine", connection, "InvoiceLine")
+
+def fetch_CreditMemoLinkedTxn(connection): 
+    return fetch_data("SELECT * FROM CreditMemoLinkedTxn", connection, "CreditMemoLinkedTxn")
+
+def fetch_VendorCreditLinkedTxn(connection): 
+    return fetch_data("SELECT * FROM VendorCreditLinkedTxn", connection, "VendorCreditLinkedTxn")
+
 
 def export_data(fetch_func, data_type):
     dsn = dsn_var.get().strip()
