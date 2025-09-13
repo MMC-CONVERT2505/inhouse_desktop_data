@@ -125,7 +125,7 @@ class QBOCountsApp(QWidget):
             cursor.execute("SELECT COUNT(*) FROM Class")
             class_count = cursor.fetchone()[0]
 
-            cursor.execute("SELECT COUNT(*) FROM ItemService")
+            cursor.execute("SELECT COUNT(*) FROM Item")
             item_count = cursor.fetchone()[0]
 
             # Invoice
@@ -188,6 +188,16 @@ class QBOCountsApp(QWidget):
             """)
             JournalEntry_count_date = cursor.fetchone()[0]
 
+            # itemReceipt
+            cursor.execute("SELECT COUNT(*) FROM itemReceipt")
+            itemReceipt_count = cursor.fetchone()[0]
+
+            cursor.execute(f"""
+                SELECT COUNT(*) FROM itemReceipt
+                WHERE TxnDate >= {{d '{from_date}'}} AND TxnDate <= {{d '{to_date}'}}
+            """)
+            itemReceipt_count_date = cursor.fetchone()[0]
+            
             # VendorCredit
             cursor.execute("SELECT COUNT(*) FROM VendorCredit")
             VendorCredit_count = cursor.fetchone()[0]
@@ -197,6 +207,93 @@ class QBOCountsApp(QWidget):
                 WHERE TxnDate >= {{d '{from_date}'}} AND TxnDate <= {{d '{to_date}'}}
             """)
             VendorCredit_count_date = cursor.fetchone()[0]
+            
+            
+            # Deposit
+            cursor.execute("SELECT COUNT(*) FROM Deposit")
+            Deposit_count = cursor.fetchone()[0]
+
+            cursor.execute(f"""
+                SELECT COUNT(*) FROM Deposit
+                WHERE TxnDate >= {{d '{from_date}'}} AND TxnDate <= {{d '{to_date}'}}
+            """)
+            Deposit_count_date = cursor.fetchone()[0]
+            
+            
+            # Check
+            cursor.execute("SELECT COUNT(*) FROM Check")
+            Check_count = cursor.fetchone()[0]
+
+            cursor.execute(f"""
+                SELECT COUNT(*) FROM Check
+                WHERE TxnDate >= {{d '{from_date}'}} AND TxnDate <= {{d '{to_date}'}}
+            """)
+            Check_count_date = cursor.fetchone()[0]
+            
+            
+            # BillPaymentCheck
+            cursor.execute("SELECT COUNT(*) FROM BillPaymentCheck")
+            BillPaymentCheck_count = cursor.fetchone()[0]
+
+            cursor.execute(f"""
+                SELECT COUNT(*) FROM BillPaymentCheck
+                WHERE TxnDate >= {{d '{from_date}'}} AND TxnDate <= {{d '{to_date}'}}
+            """)
+            BillPaymentCheck_count_date = cursor.fetchone()[0]
+            
+            
+            # ReceivePayment
+            cursor.execute("SELECT COUNT(*) FROM ReceivePayment")
+            ReceivePayment_count = cursor.fetchone()[0]
+
+            cursor.execute(f"""
+                SELECT COUNT(*) FROM ReceivePayment
+                WHERE TxnDate >= {{d '{from_date}'}} AND TxnDate <= {{d '{to_date}'}}
+            """)
+            ReceivePayment_count_date = cursor.fetchone()[0]
+            
+            
+            # CreditCardCredit
+            cursor.execute("SELECT COUNT(*) FROM CreditCardCredit")
+            CreditCardCredit_count = cursor.fetchone()[0]
+
+            cursor.execute(f"""
+                SELECT COUNT(*) FROM CreditCardCredit
+                WHERE TxnDate >= {{d '{from_date}'}} AND TxnDate <= {{d '{to_date}'}}
+            """)
+            CreditCardCredit_count_date = cursor.fetchone()[0]
+            
+            
+            # CreditCardCharge
+            cursor.execute("SELECT COUNT(*) FROM CreditCardCharge")
+            CreditCardCharge_count = cursor.fetchone()[0]
+
+            cursor.execute(f"""
+                SELECT COUNT(*) FROM CreditCardCharge
+                WHERE TxnDate >= {{d '{from_date}'}} AND TxnDate <= {{d '{to_date}'}}
+            """)
+            CreditCardCharge_count_date = cursor.fetchone()[0]
+            
+            
+            # CreditCardChargeExpenseLine
+            cursor.execute("SELECT COUNT(*) FROM CreditCardChargeExpenseLine")
+            CreditCardChargeExpenseLine_count = cursor.fetchone()[0]
+
+            cursor.execute(f"""
+                SELECT COUNT(*) FROM CreditCardChargeExpenseLine
+                WHERE TxnDate >= {{d '{from_date}'}} AND TxnDate <= {{d '{to_date}'}}
+            """)
+            CreditCardChargeExpenseLine_count_date = cursor.fetchone()[0]
+            
+             # Transfer
+            cursor.execute("SELECT COUNT(*) FROM Transfer")
+            Transfer_count = cursor.fetchone()[0]
+
+            cursor.execute(f"""
+                SELECT COUNT(*) FROM Transfer
+                WHERE TxnDate >= {{d '{from_date}'}} AND TxnDate <= {{d '{to_date}'}}
+            """)
+            Transfer_count_date = cursor.fetchone()[0]
 
             # Transaction Total
             cursor.execute("SELECT COUNT(*) FROM Transaction")
@@ -223,6 +320,14 @@ class QBOCountsApp(QWidget):
 
             txn_type_all_dict = {row[0]: row[1] for row in txn_type_all}
             txn_type_date_dict = {row[0]: row[1] for row in txn_type_date}
+            
+            
+            total_bank = Deposit_count + Check_count + BillPaymentCheck_count + ReceivePayment_count + CreditCardCredit_count + CreditCardCharge_count + CreditCardChargeExpenseLine_count + Transfer_count
+            total_bank_with_date = Deposit_count_date + Check_count_date + BillPaymentCheck_count_date + ReceivePayment_count_date + CreditCardCredit_count_date + CreditCardCharge_count_date + CreditCardChargeExpenseLine_count_date + Transfer_count_date
+            
+            # total_bank = Deposit_count + Check_count + BillPaymentCheck_count + ReceivePayment_count + CreditCardCredit_count + CreditCardCharge_count + CreditCardChargeExpenseLine_count
+            # total_bank_with_date = Deposit_count_date + Check_count_date + BillPaymentCheck_count_date + ReceivePayment_count_date + CreditCardCredit_count_date + CreditCardCharge_count_date + CreditCardChargeExpenseLine_count_date
+            
 
             # ----------------- Result Text -----------------
             result_text = (
@@ -243,7 +348,21 @@ class QBOCountsApp(QWidget):
                 f"Credit Memo : {CreditMemo_count} (DateRange: {CreditMemo_count_date})\n"
                 f"Sales Receipt : {SalesReceipt_count} (DateRange: {SalesReceipt_count_date})\n"
                 f"Journal Entry : {JournalEntry_count} (DateRange: {JournalEntry_count_date})\n"
-                f"Bill Credit : {VendorCredit_count} (DateRange: {VendorCredit_count_date})\n\n"
+                f"Item Receipt : {itemReceipt_count} (DateRange: {itemReceipt_count_date})\n"
+                f"Total Journal : {itemReceipt_count + JournalEntry_count} (DateRange: {itemReceipt_count_date + JournalEntry_count_date})\n"
+                f"Bill Credit : {VendorCredit_count} (DateRange: {VendorCredit_count_date})\n"
+                
+                f"Deposit  : {Deposit_count} (DateRange: {Deposit_count_date})\n"
+                f"Cheque : {Check_count} (DateRange: {Check_count_date})\n"
+                f"Bill Payment : {BillPaymentCheck_count} (DateRange: {BillPaymentCheck_count_date})\n"
+                f"Receive Payment : {ReceivePayment_count} (DateRange: {ReceivePayment_count_date})\n"
+                f"Credit Card Credit : {CreditCardCredit_count} (DateRange: {CreditCardCredit_count_date})\n"
+                f"Cradit Card Charge : {CreditCardCharge_count} (DateRange: {CreditCardCharge_count_date})\n"
+                f"Cradit Card Charge Expense Line : {CreditCardChargeExpenseLine_count} (DateRange: {CreditCardChargeExpenseLine_count_date})\n"
+                f"Transfer : {Transfer_count} (DateRange: {Transfer_count_date})\n\n"
+                
+                f"Bank : {total_bank} (DateRange: {total_bank_with_date})\n\n"
+                
                 f"Total Line : {total_line}\n"
                 f"Total Line With Date : {total_line_with_Date}\n\n"
                 
