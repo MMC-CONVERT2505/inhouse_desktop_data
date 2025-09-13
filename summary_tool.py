@@ -7,7 +7,6 @@ from PyQt5.QtWidgets import (
 from PyQt5.QtCore import QDate, Qt
 from PyQt5.QtGui import QFont
 
-
 class QBOCountsApp(QWidget):
     def __init__(self):
         super().__init__()
