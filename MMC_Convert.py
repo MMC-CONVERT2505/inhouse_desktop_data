@@ -633,7 +633,7 @@ class MainWindow(QMainWindow):
         self.to_date = QDateEdit()
         self.to_date.setCalendarPopup(True)
         self.to_date.setSpecialValueText("")
-        self.to_date.setDateRange(QDate(1900, 1, 1), QDate(2100, 12, 31))
+        self.to_date.setDateRange(QDate(2025, 12, 31), QDate(2100, 12, 31))
         self.to_date.setDate(self.to_date.minimumDate())
         self.to_date.setStyleSheet("font-size: 14px; padding: 8px;")
         grid.addWidget(self.to_date, 3, 1)
