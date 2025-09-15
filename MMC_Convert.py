@@ -7,9 +7,9 @@ import xml.sax.saxutils as saxutils
 import pyodbc
 import pandas as pd
 
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QDate
 from PyQt5.QtWidgets import (
-    QApplication, QMainWindow, QWidget, QTabWidget, QVBoxLayout, QHBoxLayout, QGridLayout, QToolButton,
+    QApplication, QMainWindow, QWidget, QTabWidget, QVBoxLayout, QHBoxLayout, QGridLayout, QToolButton,QDateEdit,
     QTextEdit, QPushButton, QProgressBar, QLabel, QComboBox, QFileDialog, QMessageBox, QDialog, QFrame)
 import qdarkstyle
 from PyQt5.QtGui import QIcon
@@ -256,18 +256,6 @@ def close_connection():
         conn = None
         status_var.set("Connection closed.")
 
-# def fetch_coa(connection): return pd.read_sql("SELECT * FROM Account", connection)
-# def fetch_class(connection): return pd.read_sql("SELECT * FROM Class", connection)
-# def fetch_item(connection): return pd.read_sql("SELECT * FROM Item", connection)
-# def fetch_bill(connection): return pd.read_sql("SELECT * FROM Bill", connection)
-# def fetch_invoice(connection): return pd.read_sql("SELECT * FROM Invoice", connection)
-# def fetch_receivepayment(connection): return pd.read_sql("SELECT * FROM ReceivePaymentLine", connection)
-# def fetch_BillPaymentCheckLine(connection): return pd.read_sql("SELECT * FROM BillPaymentCheckLine", connection)
-# def fetch_BillPaymentCreditCardLine(connection): return pd.read_sql("SELECT * FROM BillPaymentCreditCardLine", connection)
-# def fetch_InvoiceLine(connection): return pd.read_sql("SELECT * FROM InvoiceLine", connection)
-# def fetch_CreditMemoLinkedTxn(connection): return pd.read_sql("SELECT * FROM CreditMemoLinkedTxn", connection)
-# def fetch_VendorCreditLinkedTxn(connection): return pd.read_sql("SELECT * FROM VendorCreditLinkedTxn", connection)
-
 import pandas as pd
 
 def fetch_data(query, connection, name):
@@ -276,6 +264,29 @@ def fetch_data(query, connection, name):
     except Exception as e:
         print(f"[ERROR] Failed to fetch {name}: {e}")
         return pd.DataFrame()  # empty DataFrame return karega
+
+def get_date_filter(table_alias=""):
+    if not MAIN_WINDOW:
+        return ""
+
+    from_date_edit = MAIN_WINDOW.from_date
+    to_date_edit = MAIN_WINDOW.to_date
+
+    date_field = f"{table_alias}TxnDate" if table_alias else "TxnDate"
+
+    clauses = []
+    if from_date_edit.date() != from_date_edit.minimumDate():
+        from_dt = from_date_edit.date().toString("yyyy-MM-dd")
+        clauses.append(f"{date_field} >= {{d '{from_dt}'}}")
+
+    if to_date_edit.date() != to_date_edit.minimumDate():
+        to_dt = to_date_edit.date().toString("yyyy-MM-dd")
+        clauses.append(f"{date_field} <= {{d '{to_dt}'}}")
+
+    if clauses:
+        return " WHERE " + " AND ".join(clauses)
+    return ""
+
 
 def fetch_coa(connection): 
     return fetch_data("SELECT * FROM Account", connection, "Chart of Accounts")
@@ -286,29 +297,45 @@ def fetch_class(connection):
 def fetch_item(connection): 
     return fetch_data("SELECT * FROM Item", connection, "Item")
 
-def fetch_bill(connection): 
-    return fetch_data("SELECT * FROM Bill", connection, "Bill")
+def fetch_bill(connection):
+    query = "SELECT * FROM Bill"
+    query += get_date_filter()
+    return fetch_data(query, connection, "Bill")
 
-def fetch_invoice(connection): 
-    return fetch_data("SELECT * FROM Invoice", connection, "Invoice")
+def fetch_invoice(connection):
+    query = "SELECT * FROM Invoice"
+    query += get_date_filter()
+    return fetch_data(query, connection, "Invoice")
 
-def fetch_receivepayment(connection): 
-    return fetch_data("SELECT * FROM ReceivePaymentLine", connection, "ReceivePayment")
+def fetch_receivepayment(connection):
+    query = "SELECT * FROM ReceivePaymentLine"
+    query += get_date_filter()
+    return fetch_data(query, connection, "ReceivePaymentLine")
 
-def fetch_BillPaymentCheckLine(connection): 
-    return fetch_data("SELECT * FROM BillPaymentCheckLine", connection, "BillPaymentCheckLine")
+def fetch_BillPaymentCheckLine(connection):
+    query = "SELECT * FROM BillPaymentCheckLine"
+    query += get_date_filter()
+    return fetch_data(query, connection, "BillPaymentCheckLine")
 
-def fetch_BillPaymentCreditCardLine(connection): 
-    return fetch_data("SELECT * FROM BillPaymentCreditCardLine", connection, "BillPaymentCreditCardLine")
+def fetch_BillPaymentCreditCardLine(connection):
+    query = "SELECT * FROM BillPaymentCreditCardLine"
+    query += get_date_filter()
+    return fetch_data(query, connection, "BillPaymentCreditCardLine")
 
 def fetch_InvoiceLine(connection): 
-    return fetch_data("SELECT * FROM InvoiceLine", connection, "InvoiceLine")
+    query = "SELECT * FROM InvoiceLine"
+    query += get_date_filter()
+    return fetch_data(query, connection, "InvoiceLine")
 
-def fetch_CreditMemoLinkedTxn(connection): 
-    return fetch_data("SELECT * FROM CreditMemoLinkedTxn", connection, "CreditMemoLinkedTxn")
+def fetch_CreditMemoLinkedTxn(connection):
+    query = "SELECT * FROM CreditMemoLinkedTxn"
+    query += get_date_filter()
+    return fetch_data(query, connection, "CreditMemoLinkedTxn")
 
-def fetch_VendorCreditLinkedTxn(connection): 
-    return fetch_data("SELECT * FROM VendorCreditLinkedTxn", connection, "VendorCreditLinkedTxn")
+def fetch_VendorCreditLinkedTxn(connection):
+    query = "SELECT * FROM VendorCreditLinkedTxn"
+    query += get_date_filter()
+    return fetch_data(query, connection, "VendorCreditLinkedTxn")
 
 
 def export_data(fetch_func, data_type):
@@ -360,12 +387,9 @@ def export_all():
                 "Item": fetch_item(connection),
                 "Bill": fetch_bill(connection),
                 "Invoice": fetch_invoice(connection),
-                "ReceivePayment": fetch_receivepayment(connection),
+                "ReceivePaymentLine": fetch_receivepayment(connection),
                 "BillPaymentCheckLine": fetch_BillPaymentCheckLine(connection),
                 "BillPaymentCreditCardLine": fetch_BillPaymentCreditCardLine(connection),
-                # "InvoiceLine": fetch_InvoiceLine(connection),
-                # "CreditMemoLinkedTxn": fetch_CreditMemoLinkedTxn(connection),
-                # "VendorCreditLinkedTxn": fetch_VendorCreditLinkedTxn(connection),
             }
             with pd.ExcelWriter(save_path, engine="xlsxwriter") as writer:
                 for sheet_name, df in datasets.items():
@@ -589,85 +613,109 @@ class MainWindow(QMainWindow):
         line.setFrameShape(QFrame.HLine)   # Horizontal line
         line.setFrameShadow(QFrame.Sunken)
         grid.addWidget(line, 1, 0, 1, 3)   # spans 3 columns
+        
+        lbl_from = QLabel("From Date:")
+        lbl_from.setStyleSheet(label_style)
+        grid.addWidget(lbl_from, 2, 0)
 
+        self.from_date = QDateEdit()
+        self.from_date.setCalendarPopup(True)
+        self.from_date.setSpecialValueText("")   # allow blank
+        self.from_date.setDateRange(QDate(1900, 1, 1), QDate(2100, 12, 31))
+        self.from_date.setDate(self.from_date.minimumDate())  # start as blank
+        self.from_date.setStyleSheet("font-size: 14px; padding: 8px;")
+        grid.addWidget(self.from_date, 2, 1)
+
+        lbl_to = QLabel("To Date:")
+        lbl_to.setStyleSheet(label_style)
+        grid.addWidget(lbl_to, 3, 0)
+
+        self.to_date = QDateEdit()
+        self.to_date.setCalendarPopup(True)
+        self.to_date.setSpecialValueText("")
+        self.to_date.setDateRange(QDate(1900, 1, 1), QDate(2100, 12, 31))
+        self.to_date.setDate(self.to_date.minimumDate())
+        self.to_date.setStyleSheet("font-size: 14px; padding: 8px;")
+        grid.addWidget(self.to_date, 3, 1)
+        
         # Row 2: Export All Button
         btn_all = QPushButton("Export All Data")
         btn_all.setStyleSheet(self.button_style)
         btn_all.clicked.connect(export_all)
-        grid.addWidget(btn_all, 2, 1)
+        grid.addWidget(btn_all, 3, 2)
 
         # Row 3+: Export buttons
         btn_coa = QPushButton("Chart of Accounts")
         btn_coa.setStyleSheet(self.button_style)
         btn_coa.clicked.connect(lambda: export_data(fetch_coa, "ChartOfAccounts"))
-        grid.addWidget(btn_coa, 3, 0)
+        grid.addWidget(btn_coa, 4, 0)
 
         btn_class = QPushButton("Class")
         btn_class.setStyleSheet(self.button_style)
         btn_class.clicked.connect(lambda: export_data(fetch_class, "Class"))
-        grid.addWidget(btn_class, 3, 1)
+        grid.addWidget(btn_class, 4, 1)
         
         btn_item = QPushButton("Item")
         btn_item.setStyleSheet(self.button_style)
         btn_item.clicked.connect(lambda: export_data(fetch_item, "Item"))
-        grid.addWidget(btn_item, 3, 2)
+        grid.addWidget(btn_item, 4, 2)
         
         btn_bill = QPushButton("Bill")
         btn_bill.setStyleSheet(self.button_style)
         btn_bill.clicked.connect(lambda: export_data(fetch_bill, "Bill"))
-        grid.addWidget(btn_bill, 4, 0)
+        grid.addWidget(btn_bill, 5, 0)
 
         btn_invoice = QPushButton("Invoice")
         btn_invoice.setStyleSheet(self.button_style)
         btn_invoice.clicked.connect(lambda: export_data(fetch_invoice, "Invoice"))
-        grid.addWidget(btn_invoice, 4, 1)
+        grid.addWidget(btn_invoice, 5, 1)
 
-        btn_recv = QPushButton("Receive Payment")
+        btn_recv = QPushButton("Receive Payment Line")
         btn_recv.setStyleSheet(self.button_style)
         btn_recv.clicked.connect(lambda: export_data(fetch_receivepayment, "ReceivePaymentLine"))
-        grid.addWidget(btn_recv, 4, 2)
+        grid.addWidget(btn_recv, 5, 2)
 
-        btn_bpc = QPushButton("BillPayment Check Line")
+        btn_bpc = QPushButton("Bill Payment Check Line")
         btn_bpc.setStyleSheet(self.button_style)
         btn_bpc.clicked.connect(lambda: export_data(fetch_BillPaymentCheckLine, "BillPaymentCheckLine"))
-        grid.addWidget(btn_bpc, 5, 0)
+        grid.addWidget(btn_bpc, 6, 0)
 
-        btn_bpcc = QPushButton("BillPayment Credit Card Line")
+        btn_bpcc = QPushButton("Bill Payment Credit Card Line")
         btn_bpcc.setStyleSheet(self.button_style)
         btn_bpcc.clicked.connect(lambda: export_data(fetch_BillPaymentCreditCardLine, "BillPaymentCreditCardLine"))
-        grid.addWidget(btn_bpcc, 5, 1)
+        grid.addWidget(btn_bpcc, 6, 1)
         
         line2 = QFrame()
         line2.setFrameShape(QFrame.HLine)
         line2.setFrameShadow(QFrame.Sunken)
-        grid.addWidget(line2, 6, 0, 1, 3)
+        grid.addWidget(line2, 7, 0, 1, 3)
 
         btn_invline = QPushButton("Invoice Line")
         btn_invline.setStyleSheet(self.button_style)
         btn_invline.clicked.connect(lambda: export_data(fetch_InvoiceLine, "InvoiceLine"))
-        grid.addWidget(btn_invline, 7, 0)
+        grid.addWidget(btn_invline, 8, 0)
 
         btn_cmlink = QPushButton("Credit Memo Linked Txn")
         btn_cmlink.setStyleSheet(self.button_style)
         btn_cmlink.clicked.connect(lambda: export_data(fetch_CreditMemoLinkedTxn, "CreditMemoLinkedTxn"))
-        grid.addWidget(btn_cmlink, 7, 1)
+        grid.addWidget(btn_cmlink, 8, 1)
 
         btn_vclink = QPushButton("Vendor Credit Linked Txn")
         btn_vclink.setStyleSheet(self.button_style)
         btn_vclink.clicked.connect(lambda: export_data(fetch_VendorCreditLinkedTxn, "VendorCreditLinkedTxn"))
-        grid.addWidget(btn_vclink, 7, 2)
+        grid.addWidget(btn_vclink, 8, 2)
 
         # ---- Separator before status ----
         line3 = QFrame()
         line3.setFrameShape(QFrame.HLine)
         line3.setFrameShadow(QFrame.Sunken)
-        grid.addWidget(line3, 8, 0, 1, 3)
+        grid.addWidget(line3, 9, 0, 1, 3)
 
         # Status Label (Idle)
         self.status_label = QLabel("Idle...")
         self.status_label.setObjectName("statusLabel")
         self.status_label.setStyleSheet(label_style)
-        grid.addWidget(self.status_label, 9, 0, 1, 3, alignment=Qt.AlignLeft)
+        grid.addWidget(self.status_label, 10, 0, 1, 3, alignment=Qt.AlignLeft)
 
         self.tab_export.setLayout(grid)
 
